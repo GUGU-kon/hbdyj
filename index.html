@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>이연주 생일 축하해♥♥</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: sans-serif;
+      background-color: #f0f8ff;
+      margin: 0; padding: 0;
+    }
+    #game-container {
+      position: relative;
+      margin-top: 100px;
+      display: inline-block;
+      width: 200px; height: 200px;
+    }
+    #circle {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      overflow: visible;
+      cursor: pointer;
+      user-select: none;
+    }
+    #circle img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+    /* 두 조각 기본 스타일 */
+    .piece {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+      top: 0;
+      left: 0;
+    }
+    /* 좌우 반으로 나누기 */
+    .piece1 {
+      clip-path: polygon(0 0, 50% 0, 50% 100%, 0% 100%);
+      transform-origin: right center;
+    }
+    .piece2 {
+      clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
+      transform-origin: left center;
+    }
+
+    /* 애니메이션: 좌우로 튀어나가고 회전하며 사라짐 */
+    @keyframes flyLeft {
+      to {
+        transform: translateX(-150px) rotate(-25deg);
+        opacity: 0;
+      }
+    }
+    @keyframes flyRight {
+      to {
+        transform: translateX(150px) rotate(25deg);
+        opacity: 0;
+      }
+    }
+
+    .fly1 { animation: flyLeft 1s forwards; }
+    .fly2 { animation: flyRight 1s forwards; }
+
+    /* 몽둥이 스타일 */
+    #bat {
+      position: absolute;
+      top: -40px;
+      left: 130px;
+      width: 150px;
+      transform: rotate(60deg) scale(0);
+      transform-origin: top right;
+      opacity: 0;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      z-index: 10;
+      pointer-events: none;
+    }
+    #bat.show {
+      transform: rotate(-20deg) scale(1);
+      opacity: 1;
+    }
+    /* 눌림 효과 */
+    #circle.hit {
+      transform: scale(0.95);
+      background-color: #ff9999;
+    }
+    #message {
+      margin-top: 50px;
+      font-size: 24px;
+      display: none;
+    }
+    #congrats-image {
+        display: none;
+        position: absolute;
+        top: 0; left: 0;
+        width: 800px;
+        height: 800px;
+        object-fit: contain;
+        pointer-events: none;
+        z-index: 5;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>연주야 늦어서 미안하다..우리를 매우 쳐라...</h1>
+
+  <div id="game-container">
+    <div id="circle">
+      <img id="whole-image" src="image.png" alt="케이크" />
+    </div>
+    <img id="bat" src="bat.png" alt="몽둥이" />
+   <img id="congrats-image" src="letter.png" alt="생일 축하" style="display:none; margin-top:50px; width:200px; height:auto;" />
+
+  </div>
+
+  <audio id="hit-sound" src="sound.mp3" preload="auto"></audio>
+
+  <script>
+    const circle = document.getElementById('circle');
+    const message = document.getElementById('message');
+    const wholeImage = document.getElementById('whole-image');
+    const bat = document.getElementById('bat');
+    const hitSound = document.getElementById('hit-sound');
+    let clicks = 0;
+
+    circle.addEventListener('click', () => {
+      if(clicks >= 3) return; // 5번 이후 클릭 무시
+      clicks++;
+
+      // 눌림 효과
+      circle.classList.add('hit');
+      setTimeout(() => circle.classList.remove('hit'), 100);
+
+      // 몽둥이 휘두르기 애니메이션
+      bat.classList.add('show');
+      setTimeout(() => bat.classList.remove('show'), 200);
+
+      // 효과음 재생
+      hitSound.currentTime = 0;
+      hitSound.play();
+
+      if(clicks === 3){
+        // 1) 원본 이미지 숨기기
+        wholeImage.style.display = 'none';
+
+        // 2) 조각 2개 생성 및 추가
+        for(let i=1; i<=2; i++){
+          const piece = document.createElement('img');
+          piece.src = 'image.png';
+          piece.classList.add('piece', `piece${i}`);
+          circle.appendChild(piece);
+
+          // 다음 렌더링 프레임에 애니메이션 클래스 추가해서 실행 보장
+          requestAnimationFrame(() => {
+            piece.classList.add(`fly${i}`);
+          });
+        }
+
+        // 3) 1초 후 메시지 표시 및 클릭 비활성화
+        setTimeout(() => {
+            wholeImage.style.display = 'none';  // 원본 숨기기 (이미 위에서 했으면 생략 가능)
+            document.getElementById('congrats-image').style.display = 'block';
+            circle.style.pointerEvents = 'none';
+        }, 500);
+      }
+    });
+  </script>
+</body>
+</html>
